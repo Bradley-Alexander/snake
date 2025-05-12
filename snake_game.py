@@ -24,7 +24,7 @@ reloj = pygame.time.Clock()
 FPS = 10
 fuente = pygame.font.SysFont("arial", 25)
 
-# Función para mostrar texto en pantalla
+# Mostrar texto
 def mostrar_texto(texto, x, y, color=BLANCO, centro=False):
     superficie = fuente.render(texto, True, color)
     rect = superficie.get_rect()
@@ -60,7 +60,27 @@ def pantalla_inicio():
                     pygame.quit()
                     sys.exit()
 
-# Función principal del juego
+# Pantalla de fin de juego
+def pantalla_fin(puntuacion):
+    while True:
+        ventana.fill(NEGRO)
+        mostrar_texto(f"¡Perdiste! Puntuación: {puntuacion}", ANCHO // 2, ALTO // 2 - 30, centro=True)
+        mostrar_texto("Presiona R para reiniciar", ANCHO // 2, ALTO // 2, centro=True)
+        mostrar_texto("Presiona ESC para salir", ANCHO // 2, ALTO // 2 + 40, centro=True)
+        pygame.display.flip()
+
+        for evento in pygame.event.get():
+            if evento.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if evento.type == pygame.KEYDOWN:
+                if evento.key == pygame.K_r:
+                    return  # Reiniciar juego
+                elif evento.key == pygame.K_ESCAPE:
+                    pygame.quit()
+                    sys.exit()
+
+# Lógica del juego
 def juego():
     serpiente = [(100, 100)]
     direccion = (TAM_BLOQUE, 0)
@@ -86,6 +106,7 @@ def juego():
                     pausa = not pausa
 
         if pausa:
+            ventana.fill(NEGRO)
             mostrar_texto("PAUSA - Presiona P para continuar", ANCHO // 2, ALTO // 2, centro=True)
             pygame.display.flip()
             reloj.tick(5)
@@ -100,10 +121,8 @@ def juego():
             nueva_cabeza[1] < 0 or nueva_cabeza[1] >= ALTO or
             nueva_cabeza in serpiente
         ):
-            mostrar_texto("¡Perdiste! Puntuación: {}".format(puntuacion), ANCHO // 2, ALTO // 2, centro=True)
-            pygame.display.flip()
-            pygame.time.wait(2000)
-            return
+            pantalla_fin(puntuacion)
+            return  # Salir al menú principal
 
         serpiente.insert(0, nueva_cabeza)
 
@@ -122,6 +141,7 @@ def juego():
         pygame.display.flip()
         reloj.tick(FPS)
 
-# Ejecutar juego
-pantalla_inicio()
-juego()
+# Bucle principal
+while True:
+    pantalla_inicio()
+    juego()
