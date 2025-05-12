@@ -2,14 +2,11 @@ import pygame
 import random
 import sys
 
-# Inicialización
+# Inicialización de pygame
 pygame.init()
 
-# Tamaño de pantalla y bloques
+# Dimensiones de la ventana
 ANCHO, ALTO = 600, 400
-TAM_BLOQUE = 20
-
-# Ventana
 ventana = pygame.display.set_mode((ANCHO, ALTO))
 pygame.display.set_caption("Snake Game")
 
@@ -17,131 +14,69 @@ pygame.display.set_caption("Snake Game")
 NEGRO = (0, 0, 0)
 VERDE = (0, 255, 0)
 ROJO = (255, 0, 0)
-BLANCO = (255, 255, 255)
 
-# Reloj y fuente
+# Tamaño del bloque (segmento de la serpiente)
+TAM_BLOQUE = 20
+
+# Velocidad del juego
 reloj = pygame.time.Clock()
 FPS = 10
-fuente = pygame.font.SysFont("arial", 25)
 
-# Mostrar texto
-def mostrar_texto(texto, x, y, color=BLANCO, centro=False):
-    superficie = fuente.render(texto, True, color)
-    rect = superficie.get_rect()
-    if centro:
-        rect.center = (x, y)
-    else:
-        rect.topleft = (x, y)
-    ventana.blit(superficie, rect)
-
-# Generar comida
+# Función para generar una posición aleatoria para la comida
 def generar_comida():
     x = random.randint(0, (ANCHO - TAM_BLOQUE) // TAM_BLOQUE) * TAM_BLOQUE
     y = random.randint(0, (ALTO - TAM_BLOQUE) // TAM_BLOQUE) * TAM_BLOQUE
     return (x, y)
 
-# Pantalla de inicio
-def pantalla_inicio():
-    while True:
-        ventana.fill(NEGRO)
-        mostrar_texto("SNAKE GAME", ANCHO // 2, ALTO // 2 - 50, centro=True)
-        mostrar_texto("Presiona ESPACIO para comenzar", ANCHO // 2, ALTO // 2, centro=True)
-        mostrar_texto("Presiona ESC para salir", ANCHO // 2, ALTO // 2 + 40, centro=True)
-        pygame.display.flip()
+# Variables de la serpiente
+serpiente = [(100, 100)]
+direccion = (TAM_BLOQUE, 0)  # Empieza yendo a la derecha
 
-        for evento in pygame.event.get():
-            if evento.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            if evento.type == pygame.KEYDOWN:
-                if evento.key == pygame.K_SPACE:
-                    return
-                elif evento.key == pygame.K_ESCAPE:
-                    pygame.quit()
-                    sys.exit()
+comida = generar_comida()
 
-# Pantalla de fin de juego
-def pantalla_fin(puntuacion):
-    while True:
-        ventana.fill(NEGRO)
-        mostrar_texto(f"¡Perdiste! Puntuación: {puntuacion}", ANCHO // 2, ALTO // 2 - 30, centro=True)
-        mostrar_texto("Presiona R para reiniciar", ANCHO // 2, ALTO // 2, centro=True)
-        mostrar_texto("Presiona ESC para salir", ANCHO // 2, ALTO // 2 + 40, centro=True)
-        pygame.display.flip()
-
-        for evento in pygame.event.get():
-            if evento.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            if evento.type == pygame.KEYDOWN:
-                if evento.key == pygame.K_r:
-                    return  # Reiniciar juego
-                elif evento.key == pygame.K_ESCAPE:
-                    pygame.quit()
-                    sys.exit()
-
-# Lógica del juego
-def juego():
-    serpiente = [(100, 100)]
-    direccion = (TAM_BLOQUE, 0)
-    comida = generar_comida()
-    puntuacion = 0
-    pausa = False
-
-    while True:
-        for evento in pygame.event.get():
-            if evento.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            elif evento.type == pygame.KEYDOWN:
-                if evento.key == pygame.K_UP and direccion != (0, TAM_BLOQUE):
-                    direccion = (0, -TAM_BLOQUE)
-                elif evento.key == pygame.K_DOWN and direccion != (0, -TAM_BLOQUE):
-                    direccion = (0, TAM_BLOQUE)
-                elif evento.key == pygame.K_LEFT and direccion != (TAM_BLOQUE, 0):
-                    direccion = (-TAM_BLOQUE, 0)
-                elif evento.key == pygame.K_RIGHT and direccion != (-TAM_BLOQUE, 0):
-                    direccion = (TAM_BLOQUE, 0)
-                elif evento.key == pygame.K_p:
-                    pausa = not pausa
-
-        if pausa:
-            ventana.fill(NEGRO)
-            mostrar_texto("PAUSA - Presiona P para continuar", ANCHO // 2, ALTO // 2, centro=True)
-            pygame.display.flip()
-            reloj.tick(5)
-            continue
-
-        # Mover serpiente
-        nueva_cabeza = (serpiente[0][0] + direccion[0], serpiente[0][1] + direccion[1])
-
-        # Colisiones
-        if (
-            nueva_cabeza[0] < 0 or nueva_cabeza[0] >= ANCHO or
-            nueva_cabeza[1] < 0 or nueva_cabeza[1] >= ALTO or
-            nueva_cabeza in serpiente
-        ):
-            pantalla_fin(puntuacion)
-            return  # Salir al menú principal
-
-        serpiente.insert(0, nueva_cabeza)
-
-        if nueva_cabeza == comida:
-            puntuacion += 1
-            comida = generar_comida()
-        else:
-            serpiente.pop()
-
-        # Dibujar
-        ventana.fill(NEGRO)
-        for segmento in serpiente:
-            pygame.draw.rect(ventana, VERDE, (*segmento, TAM_BLOQUE, TAM_BLOQUE))
-        pygame.draw.rect(ventana, ROJO, (*comida, TAM_BLOQUE, TAM_BLOQUE))
-        mostrar_texto(f"Puntuación: {puntuacion}", 10, 10)
-        pygame.display.flip()
-        reloj.tick(FPS)
+def dibujar_elementos():
+    ventana.fill(NEGRO)
+    for segmento in serpiente:
+        pygame.draw.rect(ventana, VERDE, (*segmento, TAM_BLOQUE, TAM_BLOQUE))
+    pygame.draw.rect(ventana, ROJO, (*comida, TAM_BLOQUE, TAM_BLOQUE))
+    pygame.display.flip()
 
 # Bucle principal
 while True:
-    pantalla_inicio()
-    juego()
+    for evento in pygame.event.get():
+        if evento.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+        elif evento.type == pygame.KEYDOWN:
+            if evento.key == pygame.K_UP and direccion != (0, TAM_BLOQUE):
+                direccion = (0, -TAM_BLOQUE)
+            elif evento.key == pygame.K_DOWN and direccion != (0, -TAM_BLOQUE):
+                direccion = (0, TAM_BLOQUE)
+            elif evento.key == pygame.K_LEFT and direccion != (TAM_BLOQUE, 0):
+                direccion = (-TAM_BLOQUE, 0)
+            elif evento.key == pygame.K_RIGHT and direccion != (-TAM_BLOQUE, 0):
+                direccion = (TAM_BLOQUE, 0)
+
+    # Mover la serpiente
+    nueva_cabeza = (serpiente[0][0] + direccion[0], serpiente[0][1] + direccion[1])
+
+    # Colisión con los bordes o consigo misma
+    if (
+        nueva_cabeza[0] < 0 or nueva_cabeza[0] >= ANCHO or
+        nueva_cabeza[1] < 0 or nueva_cabeza[1] >= ALTO or
+        nueva_cabeza in serpiente
+    ):
+        print("¡Has perdido!")
+        pygame.quit()
+        sys.exit()
+
+    serpiente.insert(0, nueva_cabeza)
+
+    # Verificar si ha comido
+    if nueva_cabeza == comida:
+        comida = generar_comida()
+    else:
+        serpiente.pop()  # Eliminar la cola
+
+    dibujar_elementos()
+    reloj.tick(FPS)
